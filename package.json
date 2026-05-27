@@ -1,17 +1,55 @@
 {
-  "name": "harness",
+  "name": "harness-monitor",
   "version": "4.0.0",
-  "description": "WorkBuddy Harness 九维 AI Agent 基础设施（MCP Server 方式）",
+  "description": "WorkBuddy Harness 九维 MCP Server — 含独立监控仪表板",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/integration.test.js",
+    "perf": "node test/performance.test.js",
+    "dashboard": "electron dashboard/main.js",
+    "build:exe": "electron-builder --win portable --x64",
+    "build:setup": "electron-builder --win --x64"
   },
-  "keywords": ["workbuddy", "harness", "mcp", "ai-agent"],
+  "build": {
+    "appId": "com.harness.monitor",
+    "productName": "Harness Monitor",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dashboard/**/*",
+      "lib/monitor-engine.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "monitor-snapshots.json",
+        "to": "monitor-snapshots.json"
+      }
+    ],
+    "win": {
+      "icon": "dashboard/icon.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Harness-Monitor-${version}.exe"
+    }
+  },
+  "keywords": ["workbuddy", "harness", "mcp", "ai-agent", "monitor"],
   "author": "庄赫",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
   }
 }
