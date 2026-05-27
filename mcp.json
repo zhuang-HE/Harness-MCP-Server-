@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "harness": {
+      "command": "C:/ProgramData/WorkBuddy/chromium-env/135zglc/.workbuddy/binaries/node/versions/22.22.2/node.exe",
+      "args": ["C:/Users/庄赫/.workbuddy/mcp-servers/harness/index.js"],
+      "env": {
+        "HARNESS_LOG_LEVEL": "info",
+        "HARNESS_CONFIG_PATH": "C:/Users/庄赫/.workbuddy/mcp-servers/harness/config/default.json"
+      },
+      "disabled": false
+    }
+  }
+}

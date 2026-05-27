@@ -1,0 +1,10 @@
+node_modules/
+test-output/
+*.log
+eval-results.json
+eval-results-*.json
+ci-gate-log.json
+benchmark-results.json
+benchmark-baseline.json
+monitor-snapshots.json
+.DS_Store

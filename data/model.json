@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "learnedPatterns": [
+    {
+      "pattern": "success_code-generation",
+      "confidence": 0.8,
+      "support": 1
+    },
+    {
+      "pattern": "success_code-review",
+      "confidence": 0.8,
+      "support": 1
+    }
+  ],
+  "lastUpdated": 1779871573813
+}

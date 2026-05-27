@@ -1,0 +1,26 @@
+[
+  {
+    "id": "mpnu31802y3k9kn3v",
+    "name": "代码生成",
+    "type": "code-generation",
+    "estimatedDuration": 7128000
+  },
+  {
+    "id": "mpnu3180ovdnk4d18",
+    "name": "代码审查",
+    "type": "code-review",
+    "estimatedDuration": 2376000,
+    "dependencies": [
+      "mpnu31802y3k9kn3v"
+    ]
+  },
+  {
+    "id": "mpnu3180dl5358hch",
+    "name": "测试",
+    "type": "testing",
+    "estimatedDuration": 2376000,
+    "dependencies": [
+      "mpnu3180ovdnk4d18"
+    ]
+  }
+]

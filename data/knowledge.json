@@ -1,0 +1,10 @@
+[
+  {
+    "id": "knowledge-001",
+    "topic": "code-generation",
+    "category": "best-practice",
+    "content": "使用异步编程可以提高性能",
+    "createdAt": 1779871571796,
+    "updatedAt": 1779871571796
+  }
+]

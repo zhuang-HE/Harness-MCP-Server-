@@ -1,0 +1,54 @@
+[
+  {
+    "testName": "test-ab-001",
+    "variantA": {
+      "name": "A (对照)",
+      "config": {
+        "maxTokens": 2048,
+        "temperature": 0.7
+      },
+      "sampleSize": 1,
+      "successRate": 0.8823159136604563,
+      "avgRating": 4.3637925806251765
+    },
+    "variantB": {
+      "name": "B (实验)",
+      "config": {
+        "maxTokens": 4096,
+        "temperature": 0.5
+      },
+      "sampleSize": 1,
+      "successRate": 0.8825208457147634,
+      "avgRating": 4.525012168038444
+    },
+    "confidenceLevel": 0.95,
+    "isSignificant": false,
+    "winner": null
+  },
+  {
+    "testName": "test-ab-001",
+    "variantA": {
+      "name": "A (对照)",
+      "config": {
+        "maxTokens": 2048,
+        "temperature": 0.7
+      },
+      "sampleSize": 1,
+      "successRate": 0.8844352121774554,
+      "avgRating": 4.3290933317292595
+    },
+    "variantB": {
+      "name": "B (实验)",
+      "config": {
+        "maxTokens": 4096,
+        "temperature": 0.5
+      },
+      "sampleSize": 1,
+      "successRate": 0.9022985983544953,
+      "avgRating": 4.381561938642041
+    },
+    "confidenceLevel": 0.95,
+    "isSignificant": false,
+    "winner": null
+  }
+]

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harness MCP Server - 实时监控仪表板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card-bg: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e1e4e8;
+    --text-secondary: #8b949e;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --orange: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header .status-badge {
+    padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+  }
+  .status-healthy { background: rgba(63,185,80,0.15); color: var(--green); }
+  .status-degraded { background: rgba(210,153,34,0.15); color: var(--orange); }
+  .status-unhealthy { background: rgba(248,81,73,0.15); color: var(--red); }
+  .status-nodata { background: rgba(139,148,158,0.15); color: var(--text-secondary); }
+
+  .grid { display: grid; gap: 16px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px;
+  }
+  .card-header { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .card-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .card-unit { font-size: 14px; font-weight: 400; color: var(--text-secondary); margin-left: 4px; }
+
+  .chart-container { position: relative; height: 200px; }
+  canvas { width: 100% !important; height: 100% !important; }
+
+  .tool-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(42,45,58,0.5);
+  }
+  .tool-row:last-child { border-bottom: none; }
+  .tool-name { font-size: 13px; font-weight: 500; }
+  .tool-stats { font-size: 12px; color: var(--text-secondary); }
+  .tool-stats span { margin-left: 12px; }
+
+  .error-item {
+    padding: 6px 0; border-bottom: 1px solid rgba(42,45,58,0.3);
+    font-size: 12px;
+  }
+  .error-time { color: var(--text-secondary); }
+  .error-tool { color: var(--blue); margin-left: 6px; }
+  .error-msg { color: var(--red); }
+
+  .refresh-info { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 12px; }
+
+  @media (max-width: 900px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Harness MCP Server</h1>
+    <span style="font-size:12px;color:var(--text-secondary)">实时监控仪表板 v4.0</span>
+  </div>
+  <div>
+    <span id="statusBadge" class="status-badge status-nodata">等待数据...</span>
+    <span style="font-size:13px;color:var(--text-secondary);margin-left:12px" id="uptime"></span>
+  </div>
+</div>
+
+<!-- 概览卡片 -->
+<div class="grid grid-4" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-header">总请求数</div>
+    <div class="card-value" id="totalRequests">--</div>
+  </div>
+  <div class="card">
+    <div class="card-header">成功率</div>
+    <div class="card-value" style="color:var(--green)" id="successRate">--<span class="card-unit">%</span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">错误率</div>
+    <div class="card-value" style="color:var(--red)" id="errorRate">--<span class="card-unit">%</span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">运行时间</div>
+    <div class="card-value" id="uptimeValue">--<span class="card-unit"></span></div>
+  </div>
+</div>
+
+<!-- 图表行 -->
+<div class="grid grid-2" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-header">请求趋势</div>
+    <div class="chart-container"><canvas id="requestChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header">响应时间 (ms)</div>
+    <div class="chart-container"><canvas id="latencyChart"></canvas></div>
+  </div>
+</div>
+
+<!-- 性能指标 + 内存 -->
+<div class="grid grid-3" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-header">响应延迟分布</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+      <div><div style="font-size:20px;font-weight:700" id="p50">--</div><div style="font-size:11px;color:var(--text-secondary)">P50</div></div>
+      <div><div style="font-size:20px;font-weight:700" id="p95">--</div><div style="font-size:11px;color:var(--text-secondary)">P95</div></div>
+      <div><div style="font-size:20px;font-weight:700" id="p99">--</div><div style="font-size:11px;color:var(--text-secondary)">P99</div></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">
+      平均: <span id="avgLatency" style="color:var(--text)">--</span> ms |
+      最小: <span id="minLatency" style="color:var(--text)">--</span> ms |
+      最大: <span id="maxLatency" style="color:var(--text)">--</span> ms
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">吞吐量 (req/s)</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px">
+      <div><div style="font-size:20px;font-weight:700" id="tps1m">--</div><div style="font-size:11px;color:var(--text-secondary)">1分钟</div></div>
+      <div><div style="font-size:20px;font-weight:700" id="tps5m">--</div><div style="font-size:11px;color:var(--text-secondary)">5分钟</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">内存使用</div>
+    <div style="margin-top:12px">
+      <div><span style="font-size:20px;font-weight:700" id="heapUsed">--</span><span style="font-size:13px;color:var(--text-secondary)"> MB heap</span></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">
+        堆总量: <span id="heapTotal" style="color:var(--text)">--</span> MB |
+        RSS: <span id="rss" style="color:var(--text)">--</span> MB
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 工具调用统计 + 错误日志 -->
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-header">工具调用统计</div>
+    <div id="toolList" style="max-height:250px;overflow-y:auto;margin-top:8px">
+      <div style="color:var(--text-secondary);font-size:13px">等待数据...</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">最近错误</div>
+    <div id="errorList" style="max-height:250px;overflow-y:auto;margin-top:8px">
+      <div style="color:var(--text-secondary);font-size:13px">暂无错误</div>
+    </div>
+  </div>
+</div>
+
+<div class="refresh-info">自动刷新：每 5 秒 | 上次更新：<span id="lastUpdate">--</span></div>
+
+<script>
+// ═══════════════════════ Chart.js 初始化 ═══════════════════════
+const ctx1 = document.getElementById('requestChart').getContext('2d');
+const ctx2 = document.getElementById('latencyChart').getContext('2d');
+
+const requestChart = new Chart(ctx1, {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label: '成功', data: [], borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
+    { label: '失败', data: [], borderColor: '#f85149', backgroundColor: 'rgba(248,81,73,0.1)', fill: true, tension: 0.3, pointRadius: 0 }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 }, boxWidth: 12 } } },
+    scales: {
+      x: { ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 8 }, grid: { color: '#2a2d3a' } },
+      y: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#2a2d3a' }, beginAtZero: true }
+    },
+    interaction: { intersect: false, mode: 'index' }
+  }
+});
+
+const latencyChart = new Chart(ctx2, {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label: 'P95', data: [], borderColor: '#f85149', tension: 0.3, pointRadius: 0 },
+    { label: 'P50', data: [], borderColor: '#3fb950', tension: 0.3, pointRadius: 0 },
+    { label: 'Avg', data: [], borderColor: '#58a6ff', tension: 0.3, pointRadius: 0 }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 }, boxWidth: 12 } } },
+    scales: {
+      x: { ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 8 }, grid: { color: '#2a2d3a' } },
+      y: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#2a2d3a' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#8b949e' } }
+    },
+    interaction: { intersect: false, mode: 'index' }
+  }
+});
+
+// ═══════════════════════ 数据更新 ═══════════════════════
+
+function formatTime(seconds) {
+  if (seconds < 60) return seconds + 's';
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + (seconds % 60) + 's';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h + 'h ' + m + 'm';
+}
+
+async function refresh() {
+  try {
+    const resp = await fetch('/api');
+    const data = await resp.json();
+
+    if (!data.latest) {
+      document.getElementById('statusBadge').className = 'status-badge status-nodata';
+      document.getElementById('statusBadge').textContent = '无数据';
+      return;
+    }
+
+    const snap = data.latest;
+    const server = snap.server || {};
+    const latency = snap.latency || {};
+    const throughput = snap.throughput || {};
+    const memory = snap.memory || {};
+
+    // --- 状态 ---
+    const status = snap.health?.status || (server.errorRate > 5 ? 'degraded' : 'healthy');
+    const badge = document.getElementById('statusBadge');
+    if (status === 'healthy') { badge.className = 'status-badge status-healthy'; badge.textContent = '正常运行'; }
+    else if (status === 'degraded') { badge.className = 'status-badge status-degraded'; badge.textContent = '性能下降'; }
+    else { badge.className = 'status-badge status-unhealthy'; badge.textContent = '异常'; }
+
+    document.getElementById('uptime').textContent = '运行 ' + formatTime(snap.uptime || 0);
+
+    // --- 概览 ---
+    document.getElementById('totalRequests').textContent = (server.totalRequests || 0).toLocaleString();
+    document.getElementById('successRate').innerHTML = (server.successRate || 100) + '<span class="card-unit">%</span>';
+    document.getElementById('errorRate').innerHTML = (server.errorRate || 0) + '<span class="card-unit">%</span>';
+    document.getElementById('uptimeValue').innerHTML = formatTime(snap.uptime || 0);
+
+    // --- 延迟 ---
+    document.getElementById('p50').textContent = latency.p50 || '--';
+    document.getElementById('p95').textContent = latency.p95 || '--';
+    document.getElementById('p99').textContent = latency.p99 || '--';
+    document.getElementById('avgLatency').textContent = latency.avg || '--';
+    document.getElementById('minLatency').textContent = latency.min || '--';
+    document.getElementById('maxLatency').textContent = latency.max || '--';
+
+    // --- 吞吐量 ---
+    document.getElementById('tps1m').textContent = throughput['1m'] || '--';
+    document.getElementById('tps5m').textContent = throughput['5m'] || '--';
+
+    // --- 内存 ---
+    document.getElementById('heapUsed').textContent = memory.heapUsedMB || '--';
+    document.getElementById('heapTotal').textContent = memory.heapTotalMB || '--';
+    document.getElementById('rss').textContent = memory.rssMB || '--';
+
+    // --- 图表: 请求趋势 ---
+    const labels = data.snapshots.map((s, i) => {
+      const d = new Date(s.timestamp);
+      return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    });
+    requestChart.data.labels = labels;
+    requestChart.data.datasets[0].data = data.snapshots.map(s => s.server?.successRequests || 0);
+    requestChart.data.datasets[1].data = data.snapshots.map(s => s.server?.failedRequests || 0);
+    requestChart.update();
+
+    // --- 图表: 延迟 ---
+    latencyChart.data.labels = labels;
+    latencyChart.data.datasets[0].data = data.snapshots.map(s => s.latency?.p95 || 0);
+    latencyChart.data.datasets[1].data = data.snapshots.map(s => s.latency?.p50 || 0);
+    latencyChart.data.datasets[2].data = data.snapshots.map(s => s.latency?.avg || 0);
+    latencyChart.update();
+
+    // --- 工具统计 ---
+    const tools = snap.tools || [];
+    const toolList = document.getElementById('toolList');
+    if (tools.length === 0) {
+      toolList.innerHTML = '<div style="color:var(--text-secondary);font-size:13px">暂无数据</div>';
+    } else {
+      toolList.innerHTML = tools
+        .sort((a, b) => b.count - a.count)
+        .map(t => `
+          <div class="tool-row">
+            <span class="tool-name">${t.name}</span>
+            <span class="tool-stats">
+              <span>${t.count}</span>次
+              <span style="color:var(--green)">${t.avgTime}ms</span>
+              ${t.errors > 0 ? `<span style="color:var(--red)">${t.errors}错</span>` : ''}
+            </span>
+          </div>
+        `).join('');
+    }
+
+    // --- 错误日志 ---
+    const errors = snap.errors || {};
+    const errorList = document.getElementById('errorList');
+    if (!errors.recent || errors.recent.length === 0) {
+      errorList.innerHTML = '<div style="color:var(--green);font-size:13px">✅ 暂无错误</div>';
+    } else {
+      errorList.innerHTML = errors.recent.map(e => `
+        <div class="error-item">
+          <span class="error-time">${new Date(e.timestamp).toLocaleTimeString('zh-CN')}</span>
+          <span class="error-tool">${e.tool || '--'}</span>
+          <span class="error-msg">${e.message || ''}</span>
+        </div>
+      `).join('');
+    }
+
+    // --- 时间戳 ---
+    document.getElementById('lastUpdate').textContent = new Date(snap.timestamp).toLocaleTimeString('zh-CN');
+
+  } catch (e) {
+    console.error('刷新失败:', e);
+    document.getElementById('statusBadge').className = 'status-badge status-nodata';
+    document.getElementById('statusBadge').textContent = '连接失败';
+  }
+}
+
+// 启动定时刷新
+refresh();
+setInterval(refresh, 5000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+[
+  {
+    "timestamp": 1779868789103,
+    "capabilities": {
+      "accuracy": 0.8851788474857617,
+      "tokenEfficiency": 0.7923711631127168,
+      "safety": 0.8767847776414219,
+      "stability": 0.8073354237016837,
+      "maintainability": 0.7566519865531225
+    },
+    "improvements": [
+      {
+        "capability": "maintainability",
+        "currentScore": 0.7566519865531225,
+        "targetScore": 0.9,
+        "priority": "medium"
+      }
+    ],
+    "recommendations": [
+      {
+        "type": "capability_improvement",
+        "description": "建议优先改进 \"maintainability\" 能力（当前得分：75.7%）",
+        "priority": "medium"
+      }
+    ]
+  },
+  {
+    "timestamp": 1779871573815,
+    "capabilities": {
+      "accuracy": 0.9044506907183025,
+      "tokenEfficiency": 0.7737161131333989,
+      "safety": 0.8508881578172749,
+      "stability": 0.8182037500706948,
+      "maintainability": 0.7684554745605299
+    },
+    "improvements": [
+      {
+        "capability": "maintainability",
+        "currentScore": 0.7684554745605299,
+        "targetScore": 0.9,
+        "priority": "medium"
+      }
+    ],
+    "recommendations": [
+      {
+        "type": "capability_improvement",
+        "description": "建议优先改进 \"maintainability\" 能力（当前得分：76.8%）",
+        "priority": "medium"
+      }
+    ]
+  }
+]

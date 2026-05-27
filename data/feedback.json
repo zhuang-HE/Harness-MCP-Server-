@@ -1,0 +1,147 @@
+[
+  {
+    "timestamp": 1779868783051,
+    "sessionId": "test-session-001",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "非常好用！",
+    "category": "general",
+    "tags": [
+      "positive",
+      "easy-to-use"
+    ]
+  },
+  {
+    "timestamp": 1779868784060,
+    "sessionId": "test-session-001",
+    "type": "system_feedback",
+    "metric": {
+      "accuracy": 0.92,
+      "tokenEfficiency": 0.85,
+      "safety": 0.95
+    },
+    "performance": {
+      "responseTime": 1500,
+      "tokenUsage": 800,
+      "errorRate": 0.02
+    },
+    "warnings": [],
+    "errors": []
+  },
+  {
+    "timestamp": 1779868785066,
+    "sessionId": "test-session-001",
+    "type": "task_result",
+    "taskId": "task-001",
+    "taskType": "code-generation",
+    "success": true,
+    "duration": 3500,
+    "tokenUsage": 1200,
+    "errorMessage": null,
+    "output": null
+  },
+  {
+    "timestamp": 1779870729317,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779870743749,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779870975815,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779871201089,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779871263733,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779871340603,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  },
+  {
+    "timestamp": 1779871567766,
+    "sessionId": "test-session-001",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "非常好用！",
+    "category": "general",
+    "tags": [
+      "positive",
+      "easy-to-use"
+    ]
+  },
+  {
+    "timestamp": 1779871568771,
+    "sessionId": "test-session-001",
+    "type": "system_feedback",
+    "metric": {
+      "accuracy": 0.92,
+      "tokenEfficiency": 0.85,
+      "safety": 0.95
+    },
+    "performance": {
+      "responseTime": 1500,
+      "tokenUsage": 800,
+      "errorRate": 0.02
+    },
+    "warnings": [],
+    "errors": []
+  },
+  {
+    "timestamp": 1779871569775,
+    "sessionId": "test-session-001",
+    "type": "task_result",
+    "taskId": "task-001",
+    "taskType": "code-generation",
+    "success": true,
+    "duration": 3500,
+    "tokenUsage": 1200,
+    "errorMessage": null,
+    "output": null
+  },
+  {
+    "timestamp": 1779872420588,
+    "sessionId": "test-session",
+    "type": "user_feedback",
+    "rating": 5,
+    "comment": "test feedback",
+    "category": "general",
+    "tags": []
+  }
+]

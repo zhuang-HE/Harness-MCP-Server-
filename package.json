@@ -1,0 +1,17 @@
+{
+  "name": "harness",
+  "version": "4.0.0",
+  "description": "WorkBuddy Harness 九维 AI Agent 基础设施（MCP Server 方式）",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["workbuddy", "harness", "mcp", "ai-agent"],
+  "author": "庄赫",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
